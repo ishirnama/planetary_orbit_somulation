@@ -112,8 +112,8 @@ class NBodySimulation:
     def calculate_accelerations(self):
         # for each j-th Body object in the bodies list
         for body in self.bodies:
-            # create a totalf-force vector (Fⱼᵢ) and assign it to zero
-            total_force = np.zeros(2)
+            # create an acceleration vector (aⱼᵢ) and assign it to zero
+            a = np.zeros(2)
             # now for each i-th Body object in the bodies list,
             for other in self.bodies:
                 # if our j-th body is not our i-th body,
@@ -124,14 +124,23 @@ class NBodySimulation:
                     r = np.linalg.norm(r_vec)
                     # Use the simplified gravitational force formula 
                     '''
-                                  mᵢ mⱼ
-                    Fᵢⱼ = ( -G )_________ rᵢⱼ
-                                  |rᵢⱼ|³
-                    
+                               mᵢ mⱼ
+                    Fⱼᵢ = -G __________ rⱼᵢ(t)
+                              |rⱼᵢ(t)|³
+                        
+                           ∂Fⱼᵢ
+                    aⱼᵢ = _____
+                           ∂mⱼ
+
+                                 mᵢ
+                        = -G __________ rⱼᵢ(t)
+                              |rⱼᵢ(t)|³
+                
                     where G is the gravitational constant, mᵢ and mⱼ are the masses of the i-th and j-th bodies, and rᵢⱼ is the position vector from body j to body i.
                     '''
-                    total_force += -G * other.mass * r_vec / r**3
-            body.acceleration = total_force
+                    # to update the accelereation vector of the j-th body (aⱼᵢ)
+                    a += ((-G * other.mass) / r**3) * r_vec
+            body.acceleration = a
 
     # ---------------------------------------------------
     # Beeman Integration
