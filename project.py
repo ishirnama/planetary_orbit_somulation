@@ -29,22 +29,32 @@ class Body:
         self.colour = colour
         
 
-        # Initial position (positive x-axis)
+        # Initial position x₀ = [R, 0] (where R is the orbital radius)
         self.position = np.array([orbital_radius, 0.0])
 
         # Initial velocity (positive y direction)
+        # if we have a +ive orbital radius,
         if orbital_radius > 0:
-            v = np.sqrt(G * bodies_dict["sun"].mass / orbital_radius)
+            # find the velocity vector using the orbital velocity formula
+            v = np.sqrt(G * bodies_dict["sun"].mass / orbital_radius)   # v = sqrt(G * M / R) for circular orbit
+            # assign this velocity vector to the body's velocity attribute
             self.velocity = np.array([0.0, v])
+        # if we have -ive orbital radius, this is not possible ; so we set the velocity to zero.
         else:
+            # assign this zero vector to the body's velocity attribute
             self.velocity = np.array([0.0, 0.0])
+        # setting the initial acceleration to zero
+        self.acceleration = np.array([0.0, 0.0])
+        # setting the previous acceleration to zero
+        self.prev_acceleration = np.array([0.0, 0.0])
 
-        self.acceleration = np.zeros(2)
-        self.prev_acceleration = np.zeros(2)
-
+        # creating an attribute for orbital period (T)
         self.orbital_period = None
+        # creating an attribute for detecting wether the body completes a full orbit
         self.crossed_positive_x = False
+        # creating an attribute to store the time of the last completion of the orbit
         self.last_crossing_time = None
+        # creating an attribute to store yₙ₋₁ (the y position in the previous timestep)
         self.prev_y = self.position[1]
 
 
@@ -205,7 +215,8 @@ ax.set_ylim(-6, 6)
 
 lines = {}
 for body in simulation.bodies:
-    line, = ax.plot([], [], 'o', color=body.colour, markersize=6)
+    line, = ax.plot([], [], 'o', color=body.colour, markersize=6, label=body.name)
+    ax.legend()
     lines[body.name] = line
 
 
