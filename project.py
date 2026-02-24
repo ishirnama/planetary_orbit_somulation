@@ -64,32 +64,45 @@ class Body:
 
 class NBodySimulation:
     def __init__(self, filename):
+        # creating an attribute for holding the data in the JSON file after opening it
         self.bodies = self.load_bodies(filename)
+        # creating an attribute for the run-time of the simulation (t)
         self.time = 0.0
-
+        # creating an attribute for the accelerations of the bodies (a)
         self.calculate_accelerations()
 
         # Store previous acceleration for Beeman
         for body in self.bodies:
+            # coping the current acceleration of the body into it's previous acceleration attirbute
             body.prev_acceleration = body.acceleration.copy()
-
+    
+    # loading the data from the JSON file and creating Body objects for each entry in the "bodies" list in the JSON file,
+    # then storing these Body objects in a list and a dictionary for easy access.
     def load_bodies(self, filename):
+        # opening the JSON file with the filename as an input parameter
         with open(filename) as f:
+            # loading the data from the JSON file into a variable called "data"
             data = json.load(f)
 
+        # creating an empty list called "bodies" to store the Body objects
         bodies = []
+        # creating an empty dictionary called "bodies_dict" to store the Body objects with respect to their names as the keys.
         global bodies_dict
         bodies_dict = {}
 
+        # itterating through each entry in data (loaded from the JSON) and creating a Body object for each one
         for entry in data["bodies"]:
             body = Body(entry["name"],
                         entry["mass"],
                         entry["orbital_radius"],
                         entry["colour"])
+            # appending the Body object to the bodies list
             bodies.append(body)
+            # storing the Body object in the bodies_dict dictionary with the name of the body as a key
             bodies_dict[body.name] = body
+            # printing the name of the body to make sure they all load properly
             print(entry["name"]) # <-- debug print to verify body loading.
-        
+        # returning the list of Body objects
         return bodies
 
     # ---------------------------------------------------
@@ -97,12 +110,26 @@ class NBodySimulation:
     # ---------------------------------------------------
 
     def calculate_accelerations(self):
+        # for each j-th Body object in the bodies list
         for body in self.bodies:
+            # create a totalf-force vector (Fⱼᵢ) and assign it to zero
             total_force = np.zeros(2)
+            # now for each i-th Body object in the bodies list,
             for other in self.bodies:
+                # if our j-th body is not our i-th body,
                 if body is not other:
+                    # calculate the position vector from the j-th body to the i-th body (rᵢⱼ = rᵢ - rⱼ)
                     r_vec = body.position - other.position
+                    # calculate the magnitude of this position vector (r = |rᵢⱼ|)
                     r = np.linalg.norm(r_vec)
+                    # Use the simplified gravitational force formula 
+                    '''
+                                  mᵢ mⱼ
+                    Fᵢⱼ = ( -G )_________ rᵢⱼ
+                                  |rᵢⱼ|³
+                    
+                    where G is the gravitational constant, mᵢ and mⱼ are the masses of the i-th and j-th bodies, and rᵢⱼ is the position vector from body j to body i.
+                    '''
                     total_force += -G * other.mass * r_vec / r**3
             body.acceleration = total_force
 
