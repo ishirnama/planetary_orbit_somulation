@@ -12,7 +12,7 @@ print("Current working directory:", os.getcwd())
 
 G = 4 * np.pi**2 / 332946   # In units AU^3 / (Earth mass * year^2)
 
-DT = 0.001         # timestep (years)
+dt = 0.001         # timestep (years)
 TOTAL_TIME = 12    # simulate 12 years (enough for Jupiter)
 
 ENERGY_OUTPUT_FILE = "energy_output.txt"
@@ -148,12 +148,13 @@ class NBodySimulation:
 
     def step(self):
         # Update positions
+        # going through each body's position
         for body in self.bodies:
-            body.position += (
-                body.velocity * DT
-                + (2/3) * body.acceleration * DT**2
-                - (1/6) * body.prev_acceleration * DT**2
-            )
+            # r(t+δt) = r(t) + v(t)·δt + ([ 4a(t) - a(t-δt) ]/6)·δt²
+            # ∴ r(t+δt) - r() = v(t)·δt + ([ 4a(t) - a(t-δt) ]/6)·δt²
+            # ∴ δr = v(t)·δt + ([ 4a(t) - a(t-δt) ]/6)·δt
+            # and to update position we just have to do r(t)+=δr as done below
+            body.position += (body.velocity*dt + (2/3)*body.acceleration*(dt**2) - (1/6)*body.prev_acceleration*(dt**2))
 
         # Store old accelerations
         old_accelerations = [body.acceleration.copy() for body in self.bodies]
@@ -162,15 +163,17 @@ class NBodySimulation:
         self.calculate_accelerations()
 
         # Update velocities
+        # going through each bodie's velocity
         for i, body in enumerate(self.bodies):
-            body.velocity += (
-                (1/3) * body.acceleration * DT
-                + (5/6) * old_accelerations[i] * DT
-                - (1/6) * body.prev_acceleration * DT
-            )
+            # v(t+δt) = v(t) + ([ 2a(t+δt) + 5a(t) - a(t - δt) ]/6)·δt
+            # ∴ v(t+δt) - v(t) = ([ 2a(t+δt) + 5a(t) - a(t - δt) ]/6)·δt
+            # ∴ δv = ([ 2a(t+δt) + 5a(t) - a(t - δt) ]/6)·δt
+            # and to update velocity we just have to do v(t)+=δv as done below
+            body.velocity += ((1/3)*body.acceleration*dt + (5/6)*old_accelerations[i]*dt - (1/6)*body.prev_acceleration*dt)
+            
             body.prev_acceleration = old_accelerations[i]
 
-        self.time += DT
+        self.time += dt
 
         self.detect_orbits()
 
@@ -228,7 +231,7 @@ positions_history = {body.name: [] for body in simulation.bodies}
 
 with open(ENERGY_OUTPUT_FILE, "w") as f_energy:
 
-    steps = int(TOTAL_TIME / DT)
+    steps = int(TOTAL_TIME / dt)
 
     for _ in range(steps):
         simulation.step()
@@ -236,7 +239,7 @@ with open(ENERGY_OUTPUT_FILE, "w") as f_energy:
         for body in simulation.bodies:
             positions_history[body.name].append(body.position.copy())
 
-        if int(simulation.time / DT) % 10 == 0:
+        if int(simulation.time / dt) % 10 == 0:
             f_energy.write(f"{simulation.time} "
                            f"{simulation.total_energy()}\n")
 
