@@ -24,8 +24,11 @@ ENERGY_OUTPUT_FILE = "energy_output.txt"
 
 class Body:
     def __init__(self, name, mass, orbital_radius, colour):
+        # name of the bodye
         self.name = name
+        # mass of the body (mᵢ)
         self.mass = mass
+        # color of the body (according to the JSON file)
         self.colour = colour
         
 
@@ -170,34 +173,45 @@ class NBodySimulation:
             # ∴ δv = ([ 2a(t+δt) + 5a(t) - a(t - δt) ]/6)·δt
             # and to update velocity we just have to do v(t)+=δv as done below
             body.velocity += ((1/3)*body.acceleration*dt + (5/6)*old_accelerations[i]*dt - (1/6)*body.prev_acceleration*dt)
-            
+            # storing the current acceleration into the old accelerations list for the next timestep
             body.prev_acceleration = old_accelerations[i]
-
+        
+        # updating the timestep (t + δt)
         self.time += dt
-
+        # checking if the body completed a full orbit
         self.detect_orbits()
 
     # ---------------------------------------------------
     # Orbital Period Detection
     # ---------------------------------------------------
 
+    # function to detect the amount of time each body takes to cross the x-axis
     def detect_orbits(self):
+        # iterating through each body in the bodies list
         for body in self.bodies:
+            # if the body is the sun,
             if body.name == "sun":
+                # we skip it (we're assuming it stays in a fixed position at the origin)
                 continue
 
+            # spliting the position vector into x and y components
             x, y = body.position
+            # splitting the velocity vector into x and y components (vₓ and vᵧ)
             vx, vy = body.velocity
 
             # Detect crossing of x-axis from negative y to positive y
+            # if y(t-δt) < 0 and y(t) >= 0 and vₓ > 0, then we have a crossing of the x-axis
             if body.prev_y < 0 and y >= 0 and vx > 0:
 
+                # if this body has already crossed the x-axis before
                 if body.last_crossing_time is not None:
+                    # the period is the difference between the time it crosses before and the time right now
                     period = self.time - body.last_crossing_time
+                    # printing the orbital period
                     print(f"{body.name} orbital period: {period:.3f} Earth years")
-
+                # adjusting the last crossing time to the current time (t)
                 body.last_crossing_time = self.time
-
+            # adjusting the previous-y to the current-y for the next timestep
             body.prev_y = y
 
     # ---------------------------------------------------
@@ -205,20 +219,31 @@ class NBodySimulation:
     # ---------------------------------------------------
 
     def total_energy(self):
-        kinetic = 0.0
-        potential = 0.0
+        # setting T₀ = 0
+        T = 0.0
+        # setting V₀ = 0
+        V = 0.0
 
+        # going through each body
         for body in self.bodies:
-            kinetic += 0.5 * body.mass * np.dot(body.velocity, body.velocity)
-
+            # calculating the kinetic energy of the body (Tᵢ = 0.5 * mᵢ * vᵢ²) at that point
+            T += 0.5 * body.mass * np.dot(body.velocity, body.velocity)
+        # for each iteration in the bodies list,
         for i in range(len(self.bodies)):
+            # for each iteration of the bodies excluding the i-th body,
             for j in range(i + 1, len(self.bodies)):
-                r = np.linalg.norm(self.bodies[i].position -
-                                   self.bodies[j].position)
-                potential += -G * self.bodies[i].mass * \
+                # calculating |r_ij| = |rᵢ - rⱼ|
+                r = np.linalg.norm(self.bodies[i].position - self.bodies[j].position)
+                # calculating the gravitational potential energy (Vᵢⱼ)
+                '''
+                          mᵢ mⱼ               
+                Fᵢⱼ = G __________
+                         |
+                '''
+                V += -G * self.bodies[i].mass * \
                              self.bodies[j].mass / r
 
-        return kinetic + potential
+        return T + V
 
 
 # -------------------------------------------------------
