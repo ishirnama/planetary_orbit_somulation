@@ -235,14 +235,8 @@ class NBodySimulation:
                 # calculating |r_ij| = |rᵢ - rⱼ|
                 r = np.linalg.norm(self.bodies[i].position - self.bodies[j].position)
                 # calculating the gravitational potential energy (Vᵢⱼ)
-                '''
-                          mᵢ mⱼ               
-                Fᵢⱼ = G __________
-                         |
-                '''
-                V += -G * self.bodies[i].mass * \
-                             self.bodies[j].mass / r
-
+                V += (-G * self.bodies[i].mass * self.bodies[j].mass) / r
+        # returning the total energy ∑E
         return T + V
 
 
@@ -250,18 +244,23 @@ class NBodySimulation:
 # Run Simulation
 # -------------------------------------------------------
 
+# loading the class to simulate all the planets (including the sun)
 simulation = NBodySimulation("parameters_solar.json")
 
+# creating empty lists for the position histories of the bodies
 positions_history = {body.name: [] for body in simulation.bodies}
 
+# opening a text file to store the total energy for each timestep
 with open(ENERGY_OUTPUT_FILE, "w") as f_energy:
-
+    # calculate the total number of steps for this simulation
     steps = int(TOTAL_TIME / dt)
-
+    # after each step,
     for _ in range(steps):
+        # do the simulation
         simulation.step()
-
+        # for each body in the bodies list,
         for body in simulation.bodies:
+            # putting xₜ₊₁ into the history for timestep t
             positions_history[body.name].append(body.position.copy())
 
         if int(simulation.time / dt) % 10 == 0:
