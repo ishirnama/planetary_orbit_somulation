@@ -155,7 +155,7 @@ class NBodySimulation:
         for body in self.bodies:
             # r(t+δt) = r(t) + v(t)·δt + ([ 4a(t) - a(t-δt) ]/6)·δt²
             # ∴ r(t+δt) - r() = v(t)·δt + ([ 4a(t) - a(t-δt) ]/6)·δt²
-            # ∴ δr = v(t)·δt + ([ 4a(t) - a(t-δt) ]/6)·δt
+            # ∴ δr = v(t)·δt + ([ 4a(t) - a(t-δt) ]/6)·δt²
             # and to update position we just have to do r(t)+=δr as done below
             body.position += (body.velocity*dt + (2/3)*body.acceleration*(dt**2) - (1/6)*body.prev_acceleration*(dt**2))
 
