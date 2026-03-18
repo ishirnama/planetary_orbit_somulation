@@ -121,7 +121,7 @@ class NBodySimulation:
             for other in self.bodies:
                 # if our j-th body is not our i-th body,
                 if body is not other:
-                    # calculate the position vector from the j-th body to the i-th body (rᵢⱼ = rᵢ - rⱼ)
+                    # calculate the position vector from the i-th body to the j-th body (rᵢⱼ = rᵢ - rⱼ)
                     r_vec = body.position - other.position
                     # calculate the magnitude of this position vector (r = |rᵢⱼ|)
                     r = np.linalg.norm(r_vec)
@@ -260,12 +260,12 @@ with open(ENERGY_OUTPUT_FILE, "w") as f_energy:
         simulation.step()
         # for each body in the bodies list,
         for body in simulation.bodies:
-            # putting xₜ₊₁ into the history for timestep t
+            # putting xₜ into the list of position histories
             positions_history[body.name].append(body.position.copy())
-
+        # every 10 steps,
         if int(simulation.time / dt) % 10 == 0:
-            f_energy.write(f"{simulation.time} "
-                           f"{simulation.total_energy()}\n")
+            # write the current time and total energy into the energy file (f_energy)
+            f_energy.write(f"{simulation.time} "f"{simulation.total_energy()}\n")
 
 # -------------------------------------------------------
 # Animation
