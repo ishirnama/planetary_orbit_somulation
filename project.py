@@ -13,10 +13,19 @@ print("Current working directory:", os.getcwd())
 G = 4 * np.pi**2 / 332946   # In units AU^3 / (Earth mass * year^2)
 
 dt = 0.001         # timestep (years)
-TOTAL_TIME = 12    # simulate 12 years (enough for Jupiter)
+TOTAL_TIME = 25    # simulate 25 years (because Jupiter needs to cross the x axis at least twice to get an accurate period measurement).
 
 ENERGY_OUTPUT_FILE = "energy_output.txt"
 
+# actual orbital periods of the planets in Earth years (for comparison)
+REAL_PERIODS = {
+    "sun": 0.0, # the sun doesn't orbit anything, it just stays at the center
+    "mercury": 0.2408467,
+    "venus": 0.61519726,
+    "earth": 1.0000174,
+    "mars": 1.8808476,
+    "jupiter": 11.862615,
+}
 
 # -------------------------------------------------------
 # Body Class
@@ -207,6 +216,8 @@ class NBodySimulation:
                 if body.last_crossing_time is not None:
                     # the period is the difference between the time it crosses before and the time right now
                     period = self.time - body.last_crossing_time
+                    # storing the period in the orbital_period attribute of the body
+                    body.orbital_period = period
                     # printing the orbital period
                     print(f"{body.name} orbital period: {period:.3f} Earth years")
                 # adjusting the last crossing time to the current time (t)
@@ -266,6 +277,20 @@ with open(ENERGY_OUTPUT_FILE, "w") as f_energy:
         if int(simulation.time / dt) % 10 == 0:
             # write the current time and total energy into the energy file (f_energy)
             f_energy.write(f"{simulation.time} "f"{simulation.total_energy()}\n")
+
+print(f"        | Simulation | Actual | Percentage Error\n{'-'*48}")
+# goping through each body,
+for body in simulation.bodies:
+    # if the body name matches the name of the body in REAL_PERIODS
+    if body.name in REAL_PERIODS and body.orbital_period:
+        # making a list of the real orbital period values
+        real = REAL_PERIODS[body.name]
+        # making a list of the simulated orbital period values
+        sim = body.orbital_period
+        # plugging them into the percentage error formula
+        error = abs(sim - real) / real * 100
+        # printing the percentage error (simulation vs actual) for each body
+        print(f"{body.name}{' '*(8-len(body.name))}|   {sim:.3f}{' '*(10-len(str(sim)))}|  {real}  | {error:.2f}% (2 s.f.)")
 
 # -------------------------------------------------------
 # Animation
