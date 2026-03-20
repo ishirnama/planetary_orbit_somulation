@@ -261,6 +261,11 @@ simulation = NBodySimulation("parameters_solar.json")
 # creating empty lists for the position histories of the bodies
 positions_history = {body.name: [] for body in simulation.bodies}
 
+# total energy for the system list
+energy_history = []
+# every-10-timesteps for the system list
+time_history = []
+
 # opening a text file to store the total energy for each timestep
 with open(ENERGY_OUTPUT_FILE, "w") as f_energy:
     # calculate the total number of steps for this simulation
@@ -277,8 +282,22 @@ with open(ENERGY_OUTPUT_FILE, "w") as f_energy:
         if int(simulation.time / dt) % 10 == 0:
             # write the current time and total energy into the energy file (f_energy)
             f_energy.write(f"{simulation.time} "f"{simulation.total_energy()}\n")
+        # locally storing total energy every 10 steps for plotting a nice graph
+        energy_history.append(simulation.total_energy())
+        # locally storing the time every 10 steps
+        time_history.append(simulation.time)
+# showing the total energy evolution of the system overtime on a graph
+plt.figure()
+plt.plot(time_history, energy_history)
+plt.xlabel("Time (years)")
+plt.ylabel("Total Energy")
+plt.title("Energy vs Time (Beeman)")
+plt.show()
 
-print(f"        | Simulation | Actual | Percentage Error\n{'-'*48}")
+# printing the headers for the orbital period comparison table
+print(f"\n             {'Simulation':<10} | {'Actual':<7} | {'Percentage Error'}")
+# dashed-line to rule off headings from table content
+print("-" * 50)
 # goping through each body,
 for body in simulation.bodies:
     # if the body name matches the name of the body in REAL_PERIODS
@@ -290,7 +309,7 @@ for body in simulation.bodies:
         # plugging them into the percentage error formula
         error = abs(sim - real) / real * 100
         # printing the percentage error (simulation vs actual) for each body
-        print(f"{body.name}{' '*(8-len(body.name))}|   {sim:.3f}{' '*(10-len(str(sim)))}|  {real}  | {error:.2f}% (2 s.f.)")
+        print(f"{body.name:<10} | {sim:<10.3f} | {real:<7.3f} | {error:.2f}% (2 s.f.)")
 
 # -------------------------------------------------------
 # Animation
