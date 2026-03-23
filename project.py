@@ -322,17 +322,14 @@ class NBodySimulation:
         return T + V
 
 
-# -------------------------------------------------------
-# Run Simulation
-# -------------------------------------------------------
-
 # Integration options :
 # - "beeman"
 # - "euler_cromer"
 # - "euler"
+meth = input("Choose the integration method : ")
 
 # loading the class to simulate all the planets (including the sun)
-simulation = NBodySimulation("parameters_solar.json", "euler")
+simulation = NBodySimulation("parameters_solar.json", meth)
 
 # creating empty lists for the position histories of the bodies
 positions_history = {body.name: [] for body in simulation.bodies}
@@ -405,6 +402,8 @@ ax.set_ylim(-6, 6)
 lines = {}
 for body in simulation.bodies:
     line, = ax.plot([], [], 'o', color=body.colour, markersize=6, label=body.name)
+    ax.set_xlabel("x [AU]")
+    ax.set_ylabel("y [AU]")
     ax.legend()
     lines[body.name] = line
 
