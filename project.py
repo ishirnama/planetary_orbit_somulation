@@ -185,7 +185,7 @@ class NBodySimulation:
         # store old accelerations
         old_accelerations = [body.acceleration.copy() for body in self.bodies]
 
-        # uecalculate accelerations
+        # recalculate accelerations
         self.calculate_accelerations()
 
         # update velocities
@@ -221,8 +221,33 @@ class NBodySimulation:
             # so r(t)+=δr is the same as r(t)+=v(t)·δt as done below
             body.position += body.velocity * dt
 
-        # recalculate accelerations at new positions
+        # recalculate accelerations
         self.calculate_accelerations()
+    
+    def step_euler(self):
+        # Store old velocities
+        old_velocities = [body.velocity.copy() for body in self.bodies]
+        # going through each body's position
+        for i, body in enumerate(self.bodies):
+            # r(t+δt) = r(t) + v(t)·δt
+            # ∴ r(t+δt) - r(t) = v(t)·δt
+            # ∴ δr = v(t)·δt
+            # here, v(t)·δt is just (δr/δt)·δt which is δr
+            # so r(t)+=δr is the same as r(t)+=v(t)·δt as done below
+            body.position += old_velocities[i] * dt
+
+        # going through each body's velocity
+        for body in self.bodies:
+            # v(t+δt) = v(t) + a(t)·δt
+            # ∴ v(t+δt) - v(t) = a(t)·δt
+            # ∴ δv = a(t)·δt
+            # here, a(t)·δt is just (δv/δt)·δt which is δv
+            # so v(t)+=δv is the same as v(t)+=a(t)·δt as done below
+            body.velocity += body.acceleration * dt
+
+        # recalculate accelerations
+        self.calculate_accelerations()
+
     # ---------------------------------------------------
     # Orbital Period Detection
     # ---------------------------------------------------
