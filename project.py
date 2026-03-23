@@ -7,7 +7,7 @@ import os
 print("Current working directory:", os.getcwd())
 
 # -------------------------------------------------------
-# Constants (using AU, Earth mass, Earth year units)
+# Constants (using AU, Earth mass (M⊕), Earth year units)
 # -------------------------------------------------------
 
 G = 4 * np.pi**2 / 332946   # In units AU^3 / (Earth mass * year^2)
@@ -75,7 +75,9 @@ class Body:
 # -------------------------------------------------------
 
 class NBodySimulation:
-    def __init__(self, filename):
+    def __init__(self, filename, method="beeman"):
+        # picking the method of integration (the default is beeman)
+        self.method = method
         # creating an attribute for holding the data in the JSON file after opening it
         self.bodies = self.load_bodies(filename)
         # creating an attribute for the run-time of the simulation (t)
@@ -155,11 +157,23 @@ class NBodySimulation:
             body.acceleration = a
 
     # ---------------------------------------------------
-    # Beeman Integration
+    # Integration
     # ---------------------------------------------------
-
     def step(self):
-        # Update positions
+        if self.method == "beeman":
+            self.step_beeman()
+        elif self.method == "euler_cromer":
+            self.step_euler_cromer()
+        elif self.method == "euler":
+            self.step_euler()
+         
+        # updating the timestep (t + δt)
+        self.time += dt
+        # checking if the body completed a full orbit
+        self.detect_orbits()
+
+    def step_beeman(self):
+        # update positions
         # going through each body's position
         for body in self.bodies:
             # r(t+δt) = r(t) + v(t)·δt + ([ 4a(t) - a(t-δt) ]/6)·δt²
@@ -168,13 +182,13 @@ class NBodySimulation:
             # and to update position we just have to do r(t)+=δr as done below
             body.position += (body.velocity*dt + (2/3)*body.acceleration*(dt**2) - (1/6)*body.prev_acceleration*(dt**2))
 
-        # Store old accelerations
+        # store old accelerations
         old_accelerations = [body.acceleration.copy() for body in self.bodies]
 
-        # Recalculate accelerations
+        # uecalculate accelerations
         self.calculate_accelerations()
 
-        # Update velocities
+        # update velocities
         # going through each bodie's velocity
         for i, body in enumerate(self.bodies):
             # v(t+δt) = v(t) + ([ 2a(t+δt) + 5a(t) - a(t - δt) ]/6)·δt
@@ -184,12 +198,31 @@ class NBodySimulation:
             body.velocity += ((1/3)*body.acceleration*dt + (5/6)*old_accelerations[i]*dt - (1/6)*body.prev_acceleration*dt)
             # storing the current acceleration into the old accelerations list for the next timestep
             body.prev_acceleration = old_accelerations[i]
+    
+    def step_euler_cromer(self):
+        # update velocities
+        # going through each body's velocity
+        for body in self.bodies:
+            # v(t+δt) = v(t) + a(t)·δt
+            # ∴ v(t+δt) - v(t) = a(t)·δt
+            # ∴ δv = a(t)·δt
+            # and to update velocity we just have to do v(t)+=δv as done below
+            # here, a(t)·δt is just (δv/δt)·δt which is δv
+            # so v(t)+=δv is the same as v(t)+=a(t)·δt as done below
+            body.velocity += body.acceleration * dt
         
-        # updating the timestep (t + δt)
-        self.time += dt
-        # checking if the body completed a full orbit
-        self.detect_orbits()
+        # going through each body's position
+        for body in self.bodies:
+            # r(t+δt) = r(t) + v(t+δt)·δt
+            # because the velocity is updated, v(t+δt) is becomes v(t)
+            # ∴ r(t+δt) - r(t) = v(t)·δt
+            # ∴ δr = v(t)·δt
+            # here, v(t)·δt is just (δr/δt)·δt which is δr
+            # so r(t)+=δr is the same as r(t)+=v(t)·δt as done below
+            body.position += body.velocity * dt
 
+        # recalculate accelerations at new positions
+        self.calculate_accelerations()
     # ---------------------------------------------------
     # Orbital Period Detection
     # ---------------------------------------------------
@@ -287,11 +320,21 @@ with open(ENERGY_OUTPUT_FILE, "w") as f_energy:
         # locally storing the time every 10 steps
         time_history.append(simulation.time)
 # showing the total energy evolution of the system overtime on a graph
-plt.figure()
-plt.plot(time_history, energy_history)
-plt.xlabel("Time (years)")
-plt.ylabel("Total Energy")
-plt.title("Energy vs Time (Beeman)")
+N = len(time_history)
+# fig, ax = plt.subplots(1, 1)
+fig = plt.figure(figsize=(8, 6))
+# ax[1].plot(time_history, np.array([np.mean(np.gradient(energy_history, time_history))]*N), color="orange", label=r"$\frac{dE}{dt}\approx 0$")
+# ax[1].set_xlabel(r"t [yr]")
+# ax[1].set_ylabel(r"$\frac{dE}{dt}$ [$M_\oplus{AU}^2{yr}^{-3}$]")
+# ax[1].set_title("Energy Derivative vs Time (Beeman)")
+t = np.array(time_history)
+E = np.array(energy_history)
+plt.plot(t, E*(10**6), label=r"Total Energy (Beeman) $\Sigma E(t)$")
+plt.xlabel(r"t [yr]")
+plt.ylabel(r"$\Sigma E(t)$ [$1\times10^{-6} M_\oplus{AU}^2{yr}^{-2}$] ")
+plt.title("Total Energy vs Time (Beeman)")
+plt.legend()
+plt.ticklabel_format(style='plain', axis='y')
 plt.show()
 
 # printing the headers for the orbital period comparison table
@@ -308,7 +351,7 @@ for body in simulation.bodies:
         sim = body.orbital_period
         # plugging them into the percentage error formula
         error = abs(sim - real) / real * 100
-        # printing the percentage error (simulation vs actual) for each body
+        # priting the percentage error (simulation vs actual) for each body
         print(f"{body.name:<10} | {sim:<10.3f} | {real:<7.3f} | {error:.2f}% (2 s.f.)")
 
 # -------------------------------------------------------
@@ -332,7 +375,6 @@ def update(frame):
         pos = positions_history[body.name][frame]
         lines[body.name].set_data([pos[0]], [pos[1]])
     return list(lines.values())
-
 
 ani = FuncAnimation(fig, update,
                     frames=len(positions_history["earth"]),
