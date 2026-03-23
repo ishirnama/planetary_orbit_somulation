@@ -84,6 +84,8 @@ class NBodySimulation:
         self.time = 0.0
         # creating an attribute for the accelerations of the bodies (a)
         self.calculate_accelerations()
+        # deciding the color of the total energy graph based on the method of integration
+        self.colour = None
 
         # Store previous acceleration for Beeman
         for body in self.bodies:
@@ -160,13 +162,24 @@ class NBodySimulation:
     # Integration
     # ---------------------------------------------------
     def step(self):
+        # if the user picks beeman method
         if self.method == "beeman":
+            # call the step function for beemian integration
             self.step_beeman()
+            # beeman's graph is blue
+            self.colour = "blue"
+        # otherwise, if the user picks euler-cromer method
         elif self.method == "euler_cromer":
+            #call the step function for euler-cromer integration
             self.step_euler_cromer()
+            # euler & cromer's graph is red
+            self.colour = "red"
+        # otherwise, if the user picks direct-euler method
         elif self.method == "euler":
+            # call the step function for direct-euler integration
             self.step_euler()
-         
+            # euler's graph is green
+            self.colour = "green"
         # updating the timestep (t + δt)
         self.time += dt
         # checking if the body completed a full orbit
@@ -177,7 +190,7 @@ class NBodySimulation:
         # going through each body's position
         for body in self.bodies:
             # r(t+δt) = r(t) + v(t)·δt + ([ 4a(t) - a(t-δt) ]/6)·δt²
-            # ∴ r(t+δt) - r() = v(t)·δt + ([ 4a(t) - a(t-δt) ]/6)·δt²
+            # ∴ r(t+δt) - r(t) = v(t)·δt + ([ 4a(t) - a(t-δt) ]/6)·δt²
             # ∴ δr = v(t)·δt + ([ 4a(t) - a(t-δt) ]/6)·δt²
             # and to update position we just have to do r(t)+=δr as done below
             body.position += (body.velocity*dt + (2/3)*body.acceleration*(dt**2) - (1/6)*body.prev_acceleration*(dt**2))
@@ -305,7 +318,7 @@ class NBodySimulation:
                 r = np.linalg.norm(self.bodies[i].position - self.bodies[j].position)
                 # calculating the gravitational potential energy (Vᵢⱼ)
                 V += (-G * self.bodies[i].mass * self.bodies[j].mass) / r
-        # returning the total energy ∑E
+        # returning the total energy ∑E(t)
         return T + V
 
 
@@ -313,8 +326,13 @@ class NBodySimulation:
 # Run Simulation
 # -------------------------------------------------------
 
+# Integration options :
+# - "beeman"
+# - "euler_cromer"
+# - "euler"
+
 # loading the class to simulate all the planets (including the sun)
-simulation = NBodySimulation("parameters_solar.json")
+simulation = NBodySimulation("parameters_solar.json", "euler")
 
 # creating empty lists for the position histories of the bodies
 positions_history = {body.name: [] for body in simulation.bodies}
@@ -346,18 +364,14 @@ with open(ENERGY_OUTPUT_FILE, "w") as f_energy:
         time_history.append(simulation.time)
 # showing the total energy evolution of the system overtime on a graph
 N = len(time_history)
-# fig, ax = plt.subplots(1, 1)
+# plotting ΣE(t) vs t and making sure the units are there
 fig = plt.figure(figsize=(8, 6))
-# ax[1].plot(time_history, np.array([np.mean(np.gradient(energy_history, time_history))]*N), color="orange", label=r"$\frac{dE}{dt}\approx 0$")
-# ax[1].set_xlabel(r"t [yr]")
-# ax[1].set_ylabel(r"$\frac{dE}{dt}$ [$M_\oplus{AU}^2{yr}^{-3}$]")
-# ax[1].set_title("Energy Derivative vs Time (Beeman)")
 t = np.array(time_history)
 E = np.array(energy_history)
-plt.plot(t, E*(10**6), label=r"Total Energy (Beeman) $\Sigma E(t)$")
+plt.plot(t, E*(10**6), color=simulation.colour, label=fr"Total Energy ({simulation.method.capitalize()}) $\Sigma E(t)$")
 plt.xlabel(r"t [yr]")
 plt.ylabel(r"$\Sigma E(t)$ [$1\times10^{-6} M_\oplus{AU}^2{yr}^{-2}$] ")
-plt.title("Total Energy vs Time (Beeman)")
+plt.title(f"Total Energy vs Time ({simulation.method.capitalize()})")
 plt.legend()
 plt.ticklabel_format(style='plain', axis='y')
 plt.show()
