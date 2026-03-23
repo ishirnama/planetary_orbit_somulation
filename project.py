@@ -320,6 +320,57 @@ class NBodySimulation:
                 V += (-G * self.bodies[i].mass * self.bodies[j].mass) / r
         # returning the total energy ∑E(t)
         return T + V
+    
+    # ----------------------------------------------
+    # Angle Alignment Detection
+    # ----------------------------------------------
+
+    def detect_alignment(self, threshold_deg=5):
+        angles = []
+
+        for body in self.bodies:
+            if body.name == "sun":
+                continue
+
+            # Finding the angle between the position of the body and the x-axis
+            #
+            #        y      r(t)
+            #         |    /
+            #         |   /
+            #         |  /
+            #         | /
+            #      ___|/θ)___ x
+            #         |
+            #
+            # therefore θ(t) = arctan(y(t)/x(t))
+            angle = np.arctan2(body.position[1], body.position[0])
+            # putting the angle into the angles list
+            angles.append(angle)
+        # making it an array
+        angles = np.array(angles)
+
+        # Convert to unit vectors (IMPORTANT trick)
+        # polar coordinates : 
+        # x = r·cos(θ) & y = r·sin(θ) where r = 1 ,     (becuz unit vector)
+        # making a collection of unit vectors for every θ(t)
+        unit_vectors = np.column_stack((np.cos(angles), np.sin(angles)))
+
+        # Mean direction vector
+        mean_vector = np.mean(unit_vectors, axis=0)
+
+        # Mean angle
+        mean_angle = np.arctan2(mean_vector[1], mean_vector[0])
+
+        # Compute angular differences
+        diffs = np.abs(np.arctan2(np.sin(angles - mean_angle),
+                                np.cos(angles - mean_angle)))
+
+        # Convert threshold to radians
+        threshold = np.deg2rad(threshold_deg)
+
+        # Check if all within threshold
+        if np.all(diffs < threshold):
+            print(f"Alignment at t = {self.time:.3f} years")
 
 
 # Integration options :
