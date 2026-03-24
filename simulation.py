@@ -3,18 +3,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-import os
-print("Current working directory:", os.getcwd())
+# gravitational constant [AU³ M⊕⁻¹ yr⁻²]
+G = 4 * np.pi**2 / 332946
 
-# -------------------------------------------------------
-# Constants (using AU, Earth mass (M⊕), Earth year units)
-# -------------------------------------------------------
+# timestep [yr]
+dt = 0.001
+# simulate 25 years (because Jupiter needs to cross the x-axis at least twice to get an accurate period measurement)
+# once at the start (t = 0)
+# and once at the end (t = 25)
+TOTAL_TIME = 25
 
-G = 4 * np.pi**2 / 332946   # In units AU^3 / (Earth mass * year^2)
-
-dt = 0.001         # timestep (years)
-TOTAL_TIME = 25    # simulate 25 years (because Jupiter needs to cross the x axis at least twice to get an accurate period measurement).
-
+# making a file to store the total energy of the system at each timestep
 ENERGY_OUTPUT_FILE = "energy_output.txt"
 
 # actual orbital periods of the planets in Earth years (for comparison)
@@ -27,10 +26,7 @@ REAL_PERIODS = {
     "jupiter": 11.862615,
 }
 
-# -------------------------------------------------------
-# Body Class
-# -------------------------------------------------------
-
+# making a class for each body
 class Body:
     def __init__(self, name, mass, orbital_radius, colour):
         # name of the bodye
@@ -40,7 +36,6 @@ class Body:
         # color of the body (according to the JSON file)
         self.colour = colour
         
-
         # Initial position x₀ = [R, 0] (where R is the orbital radius)
         self.position = np.array([orbital_radius, 0.0])
 
@@ -69,11 +64,7 @@ class Body:
         # creating an attribute to store yₙ₋₁ (the y position in the previous timestep)
         self.prev_y = self.position[1]
 
-
-# -------------------------------------------------------
-# Simulation Class
-# -------------------------------------------------------
-
+# creating a class for the whole simulation
 class NBodySimulation:
     def __init__(self, filename, method="beeman"):
         # picking the method of integration (the default is beeman)
@@ -86,6 +77,8 @@ class NBodySimulation:
         self.calculate_accelerations()
         # deciding the color of the total energy graph based on the method of integration
         self.colour = None
+        # creating an attribute for the time when all 5 planets align
+        self.alignment_time = 0.0
 
         # Store previous acceleration for Beeman
         for body in self.bodies:
@@ -116,15 +109,10 @@ class NBodySimulation:
             bodies.append(body)
             # storing the Body object in the bodies_dict dictionary with the name of the body as a key
             bodies_dict[body.name] = body
-            # printing the name of the body to make sure they all load properly
-            print(entry["name"]) # <-- debug print to verify body loading.
         # returning the list of Body objects
         return bodies
 
-    # ---------------------------------------------------
-    # Gravitational acceleration
-    # ---------------------------------------------------
-
+    # making a method to update accelerations of the bodies at each timestep
     def calculate_accelerations(self):
         # for each j-th Body object in the bodies list
         for body in self.bodies:
@@ -156,11 +144,10 @@ class NBodySimulation:
                     '''
                     # to update the accelereation vector of the j-th body (aⱼᵢ)
                     a += ((-G * other.mass) / r**3) * r_vec
+            # updating the acceleration attribute of the j-th body
             body.acceleration = a
 
-    # ---------------------------------------------------
-    # Integration
-    # ---------------------------------------------------
+    # different types of integration methods
     def step(self):
         # if the user picks beeman method
         if self.method == "beeman":
@@ -261,11 +248,7 @@ class NBodySimulation:
         # recalculate accelerations
         self.calculate_accelerations()
 
-    # ---------------------------------------------------
-    # Orbital Period Detection
-    # ---------------------------------------------------
-
-    # function to detect the amount of time each body takes to cross the x-axis
+    # detecting the amount of time each body takes to cross the x-axis
     def detect_orbits(self):
         # iterating through each body in the bodies list
         for body in self.bodies:
@@ -289,17 +272,12 @@ class NBodySimulation:
                     period = self.time - body.last_crossing_time
                     # storing the period in the orbital_period attribute of the body
                     body.orbital_period = period
-                    # printing the orbital period
-                    print(f"{body.name} orbital period: {period:.3f} Earth years")
                 # adjusting the last crossing time to the current time (t)
                 body.last_crossing_time = self.time
             # adjusting the previous-y to the current-y for the next timestep
             body.prev_y = y
 
-    # ---------------------------------------------------
-    # Energy Calculation
-    # ---------------------------------------------------
-
+    # calculating the total energy of the system at a specific time (ΣE(t))
     def total_energy(self):
         # setting T₀ = 0
         T = 0.0
@@ -321,66 +299,65 @@ class NBodySimulation:
         # returning the total energy ∑E(t)
         return T + V
     
-    # ----------------------------------------------
-    # Angle Alignment Detection
-    # ----------------------------------------------
-
+    # calculating when the planets align
     def detect_alignment(self, threshold_deg=5):
+        # making an empty list to store the angles at specific timesteps θ(t)
         angles = []
-
+        # going through each body,
         for body in self.bodies:
+            # if the body is the sun,
             if body.name == "sun":
+                # we can ignore it because it's angle to the x-axis is permanently 0
                 continue
 
             # Finding the angle between the position of the body and the x-axis
             #
-            #        y      r(t)
-            #         |    /
-            #         |   /
+            #        y      r(t)                        rᵧ
+            #         |    /                 tan(θ) =  ____
+            #         |   /                             rₓ
             #         |  /
-            #         | /
+            #         | /                    ∴    θ = arctan(rᵧ / rₓ)
             #      ___|/θ)___ x
             #         |
             #
-            # therefore θ(t) = arctan(y(t)/x(t))
             angle = np.arctan2(body.position[1], body.position[0])
             # putting the angle into the angles list
             angles.append(angle)
-        # making it an array
+        # making it a numpy array so that each planet's 
         angles = np.array(angles)
-
-        # Convert to unit vectors (IMPORTANT trick)
+        
         # polar coordinates : 
         # x = r·cos(θ) & y = r·sin(θ) where r = 1 ,     (becuz unit vector)
         # making a collection of unit vectors for every θ(t)
         unit_vectors = np.column_stack((np.cos(angles), np.sin(angles)))
 
-        # Mean direction vector
+        # finding μ(t) the mean vector at a specific instance in time for all bodies
         mean_vector = np.mean(unit_vectors, axis=0)
 
-        # Mean angle
+        # finding θₘ(t) the angle of the mean vector
         mean_angle = np.arctan2(mean_vector[1], mean_vector[0])
 
-        # Compute angular differences
-        diffs = np.abs(np.arctan2(np.sin(angles - mean_angle),
-                                np.cos(angles - mean_angle)))
-
-        # Convert threshold to radians
+        # finding δθ = |arctan(sin(θ - θₘ) / cos(θ - θₘ))|
+        # which gives the angle between μ(t) and r(t) for each bopdy
+        diffs = np.abs(np.arctan2(np.sin(angles - mean_angle), np.cos(angles - mean_angle)))
+        # converting the threshold angle (φ) into radians because that's what the difference angles are in
         threshold = np.deg2rad(threshold_deg)
-
-        # Check if all within threshold
+        # comparing δθ with φ
         if np.all(diffs < threshold):
+            # δθ < φ for all bodies, then all of their r(t)'s are super close to μ(t) and thus they are all aligned with each other
             print(f"Alignment at t = {self.time:.3f} years")
+            # updating the alignment time
+            self.alignment_time = self.time
 
 
 # Integration options :
 # - "beeman"
 # - "euler_cromer"
 # - "euler"
-meth = input("Choose the integration method : ")
+meth = "beeman"
 
-# loading the class to simulate all the planets (including the sun)
-simulation = NBodySimulation("parameters_solar.json", meth)
+# loading the class to simulate all the planets (and the sun too)
+simulation = NBodySimulation("parameters_solar.json")
 
 # creating empty lists for the position histories of the bodies
 positions_history = {body.name: [] for body in simulation.bodies}
@@ -410,6 +387,24 @@ with open(ENERGY_OUTPUT_FILE, "w") as f_energy:
         energy_history.append(simulation.total_energy())
         # locally storing the time every 10 steps
         time_history.append(simulation.time)
+
+# printing the headers for the orbital period comparison table
+print(f"\n             {'Simulation':<10} | {'Actual':<7} | {'Percentage Error'}")
+# dashed-line to rule off headings from table content
+print("-" * 53)
+# goping through each body,
+for body in simulation.bodies:
+    # if the body name matches the name of the body in REAL_PERIODS
+    if body.name in REAL_PERIODS and body.orbital_period:
+        # making a list of the real orbital period values
+        real = REAL_PERIODS[body.name]
+        # making a list of the simulated orbital period values
+        sim = body.orbital_period
+        # plugging them into the percentage error formula
+        error = abs(sim - real) / real * 100
+        # priting the percentage error (simulation vs actual) for each body
+        print(f"{body.name:<10} | {sim:<10.3f} | {real:<7.3f} | {error:.2f}% (2 s.f.)")
+
 # showing the total energy evolution of the system overtime on a graph
 N = len(time_history)
 # plotting ΣE(t) vs t and making sure the units are there
@@ -424,27 +419,7 @@ plt.legend()
 plt.ticklabel_format(style='plain', axis='y')
 plt.show()
 
-# printing the headers for the orbital period comparison table
-print(f"\n             {'Simulation':<10} | {'Actual':<7} | {'Percentage Error'}")
-# dashed-line to rule off headings from table content
-print("-" * 50)
-# goping through each body,
-for body in simulation.bodies:
-    # if the body name matches the name of the body in REAL_PERIODS
-    if body.name in REAL_PERIODS and body.orbital_period:
-        # making a list of the real orbital period values
-        real = REAL_PERIODS[body.name]
-        # making a list of the simulated orbital period values
-        sim = body.orbital_period
-        # plugging them into the percentage error formula
-        error = abs(sim - real) / real * 100
-        # priting the percentage error (simulation vs actual) for each body
-        print(f"{body.name:<10} | {sim:<10.3f} | {real:<7.3f} | {error:.2f}% (2 s.f.)")
-
-# -------------------------------------------------------
-# Animation
-# -------------------------------------------------------
-
+# animating the planets orbiting the sun
 fig, ax = plt.subplots()
 ax.set_aspect("equal")
 ax.set_xlim(-6, 6)
