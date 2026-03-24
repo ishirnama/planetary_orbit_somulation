@@ -8,6 +8,7 @@ G = 4 * np.pi**2 / 332946
 
 # timestep [yr]
 dt = 0.001
+
 # simulate 25 years (because Jupiter needs to cross the x-axis at least twice to get an accurate period measurement)
 # once at the start (t = 0)
 # and once at the end (t = 25)
@@ -16,15 +17,6 @@ TOTAL_TIME = 25
 # making a file to store the total energy of the system at each timestep
 ENERGY_OUTPUT_FILE = "energy_output.txt"
 
-# actual orbital periods of the planets in Earth years (for comparison)
-REAL_PERIODS = {
-    "sun": 0.0, # the sun doesn't orbit anything, it just stays at the center
-    "mercury": 0.2408467,
-    "venus": 0.61519726,
-    "earth": 1.0000174,
-    "mars": 1.8808476,
-    "jupiter": 11.862615,
-}
 
 # making a class for each body
 class Body:
@@ -349,99 +341,68 @@ class NBodySimulation:
             # updating the alignment time
             self.alignment_time = self.time
 
+if __name__ == "__main__":
+    # Integration options :
+    # - "beeman"
+    # - "euler_cromer"
+    # - "euler"
 
-# Integration options :
-# - "beeman"
-# - "euler_cromer"
-# - "euler"
-meth = "beeman"
+    # loading the class to simulate all the planets (and the sun too)
+    simulation = NBodySimulation("parameters_solar.json")
 
-# loading the class to simulate all the planets (and the sun too)
-simulation = NBodySimulation("parameters_solar.json")
+    # creating empty lists for the position histories of the bodies
+    positions_history = {body.name: [] for body in simulation.bodies}
 
-# creating empty lists for the position histories of the bodies
-positions_history = {body.name: [] for body in simulation.bodies}
+    # total energy for the system list
+    energy_history = []
+    # every-10-timesteps for the system list
+    time_history = []
 
-# total energy for the system list
-energy_history = []
-# every-10-timesteps for the system list
-time_history = []
-
-# opening a text file to store the total energy for each timestep
-with open(ENERGY_OUTPUT_FILE, "w") as f_energy:
-    # calculate the total number of steps for this simulation
-    steps = int(TOTAL_TIME / dt)
-    # after each step,
-    for _ in range(steps):
-        # do the simulation
-        simulation.step()
-        # for each body in the bodies list,
-        for body in simulation.bodies:
-            # putting xₜ into the list of position histories
-            positions_history[body.name].append(body.position.copy())
-        # every 10 steps,
-        if int(simulation.time / dt) % 10 == 0:
-            # write the current time and total energy into the energy file (f_energy)
-            f_energy.write(f"{simulation.time} "f"{simulation.total_energy()}\n")
-        # locally storing total energy every 10 steps for plotting a nice graph
-        energy_history.append(simulation.total_energy())
-        # locally storing the time every 10 steps
-        time_history.append(simulation.time)
-
-# printing the headers for the orbital period comparison table
-print(f"\n             {'Simulation':<10} | {'Actual':<7} | {'Percentage Error'}")
-# dashed-line to rule off headings from table content
-print("-" * 53)
-# goping through each body,
-for body in simulation.bodies:
-    # if the body name matches the name of the body in REAL_PERIODS
-    if body.name in REAL_PERIODS and body.orbital_period:
-        # making a list of the real orbital period values
-        real = REAL_PERIODS[body.name]
-        # making a list of the simulated orbital period values
-        sim = body.orbital_period
-        # plugging them into the percentage error formula
-        error = abs(sim - real) / real * 100
-        # priting the percentage error (simulation vs actual) for each body
-        print(f"{body.name:<10} | {sim:<10.3f} | {real:<7.3f} | {error:.2f}% (2 s.f.)")
-
-# showing the total energy evolution of the system overtime on a graph
-N = len(time_history)
-# plotting ΣE(t) vs t and making sure the units are there
-fig = plt.figure(figsize=(8, 6))
-t = np.array(time_history)
-E = np.array(energy_history)
-plt.plot(t, E*(10**6), color=simulation.colour, label=fr"Total Energy ({simulation.method.capitalize()}) $\Sigma E(t)$")
-plt.xlabel(r"t [yr]")
-plt.ylabel(r"$\Sigma E(t)$ [$1\times10^{-6} M_\oplus{AU}^2{yr}^{-2}$] ")
-plt.title(f"Total Energy vs Time ({simulation.method.capitalize()})")
-plt.legend()
-plt.ticklabel_format(style='plain', axis='y')
-plt.show()
-
-# animating the planets orbiting the sun
-fig, ax = plt.subplots()
-ax.set_aspect("equal")
-ax.set_xlim(-6, 6)
-ax.set_ylim(-6, 6)
-
-lines = {}
-for body in simulation.bodies:
-    line, = ax.plot([], [], 'o', color=body.colour, markersize=6, label=body.name)
-    ax.set_xlabel("x [AU]")
-    ax.set_ylabel("y [AU]")
-    ax.legend()
-    lines[body.name] = line
+    # opening a text file to store the total energy for each timestep
+    with open(ENERGY_OUTPUT_FILE, "w") as f_energy:
+        # calculate the total number of steps for this simulation
+        steps = int(TOTAL_TIME / dt)
+        # after each step,
+        for _ in range(steps):
+            # do the simulation
+            simulation.step()
+            # for each body in the bodies list,
+            for body in simulation.bodies:
+                # putting xₜ into the list of position histories
+                positions_history[body.name].append(body.position.copy())
+            # every 10 steps,
+            if int(simulation.time / dt) % 10 == 0:
+                # write the current time and total energy into the energy file (f_energy)
+                f_energy.write(f"{simulation.time} "f"{simulation.total_energy()}\n")
+            # locally storing total energy every 10 steps for plotting a nice graph
+            energy_history.append(simulation.total_energy())
+            # locally storing the time every 10 steps
+            time_history.append(simulation.time)
 
 
-def update(frame):
+    # animating the planets orbiting the sun
+    fig, ax = plt.subplots()
+    ax.set_aspect("equal")
+    ax.set_xlim(-6, 6)
+    ax.set_ylim(-6, 6)
+
+    lines = {}
     for body in simulation.bodies:
-        pos = positions_history[body.name][frame]
-        lines[body.name].set_data([pos[0]], [pos[1]])
-    return list(lines.values())
+        line, = ax.plot([], [], 'o', color=body.colour, markersize=6, label=body.name)
+        ax.set_xlabel("x [AU]")
+        ax.set_ylabel("y [AU]")
+        ax.legend()
+        lines[body.name] = line
 
-ani = FuncAnimation(fig, update,
-                    frames=len(positions_history["earth"]),
-                    interval=20, blit=True)
 
-plt.show()
+    def update(frame):
+        for body in simulation.bodies:
+            pos = positions_history[body.name][frame]
+            lines[body.name].set_data([pos[0]], [pos[1]])
+        return list(lines.values())
+
+    ani = FuncAnimation(fig, update,
+                        frames=len(positions_history["earth"]),
+                        interval=20, blit=True)
+
+    plt.show()
