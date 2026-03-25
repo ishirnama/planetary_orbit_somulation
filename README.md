@@ -59,38 +59,49 @@ After checking the simulated periods against the actual periods, the program com
 
 ---
 
-experiment2.py
-Upon runninng this file, the program plots a graph of **"Total Energy"** ($\Sigma E(t)$) against "time" ($t$).
+### experiment2.py
+Upon runninng this file, the program prompts the user for which integration method they wish to use.
+The user can pick from 3 options andd enter the number corresponding to their desired integration method :
+1. Beeman
+2. Euler-Cromer
+3. Direct Euler
 
+Then, the program plots 2 graphs :
+- "**Total Energy**" ($\Sigma E(t)$) against "**time**" ($t$)
+- "**Total Energy RMS**" ($\Delta E_{\text{RMS}}$) against "**time**" ($t$)
 
-run_experiment2.py
-Compares energy conservation for different numerical integration methods:
-- Beeman
-- Euler-Cromer
-- Direct Euler
+These graphs help to visualise energy conservation. The first graph displays $\Sigma E(t)$ vs $t$.
+From this graph, we can look for properties of energy conservation, i.e. if the energy is bounded (kept within a certain range) then it is conserved.
+The second graph ($\Delta E_{\text{RMS}}$ vs $t$) shows how far away the system's total energy ($\Sigma E(t)$) is from the equillibrium ($\braket{E}$).
+If $\Delta E_{\text{RMS}}$
 
-run_experiment4.py
-Detects planetary alignments based on a 5° threshold from the mean angle.
+---
 
-----------------------------------------
+### experiment4.py
+Upon running this file, the program prompts the user for the length of time (yrs) they want to simulate.
+Then it asks them for a **threshold angle** ($\phi$). This angle is the maximum possible angle that the position vectors of all the planets can make with a line.
+This guarentees a **planetary alignment**. The planetary alignment times are then printed out into the terminal.
+
+---
+
 ## How to run the files
-----------------------------------------
 
-Make sure you have Python installed with the following libraries:
+Make sure you have Python installed with the following libraries :
 - numpy
 - matplotlib
 - json (standard)
 
-To run a file:
+To run a file :
 
-python run_default.py
-python run_experiment1.py
-python run_experiment2.py
-python run_experiment4.py
+1. Open a terminal
+2. Navigate to your project folder.
+3. Type "python [filename].py" into the terminal and replace [filename] with the actual file's name (e.g. if I want to run simulation.py).
+   >> python simulation.py
+4. Follow the instructions that pop up in the terminal.
 
-----------------------------------------
+---
+
 ## Units used for calculations
-----------------------------------------
 
 - Distance: AU
 - Mass: Earth masses (M⊕)
