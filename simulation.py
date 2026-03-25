@@ -6,9 +6,6 @@ from matplotlib.animation import FuncAnimation
 # gravitational constant [AU³ M⊕⁻¹ yr⁻²]
 G = 4 * np.pi**2 / 332946
 
-# timestep [yr]
-dt = 0.001
-
 # simulate 25 years (because Jupiter needs to cross the x-axis at least twice to get an accurate period measurement)
 # once at the start (t = 0)
 # and once at the end (t = 25)
@@ -58,7 +55,7 @@ class Body:
 
 # creating a class for the whole simulation
 class NBodySimulation:
-    def __init__(self, filename, method="1"):
+    def __init__(self, filename, method="1", dt=0.001):
         # picking the method of integration (the default is beeman)
         self.method = method
         # creating an attribute for holding the data in the JSON file after opening it
@@ -71,6 +68,8 @@ class NBodySimulation:
         self.colour = None
         # creating an attribute for the time when all 5 planets align
         self.alignment_time = 0.0
+        # dt
+        self.dt = dt
 
         # Store previous acceleration for Beeman
         for body in self.bodies:
@@ -160,7 +159,7 @@ class NBodySimulation:
             # euler's graph is green
             self.colour = "green"
         # updating the timestep (t + δt)
-        self.time += dt
+        self.time += self.dt
         # checking if the body completed a full orbit
         self.detect_orbits()
 
@@ -172,7 +171,7 @@ class NBodySimulation:
             # ∴ r(t+δt) - r(t) = v(t)·δt + ([ 4a(t) - a(t-δt) ]/6)·δt²
             # ∴ δr = v(t)·δt + ([ 4a(t) - a(t-δt) ]/6)·δt²
             # and to update position we just have to do r(t)+=δr as done below
-            body.position += (body.velocity*dt + (2/3)*body.acceleration*(dt**2) - (1/6)*body.prev_acceleration*(dt**2))
+            body.position += (body.velocity*self.dt + (2/3)*body.acceleration*(self.dt**2) - (1/6)*body.prev_acceleration*(self.dt**2))
 
         # store old accelerations
         old_accelerations = [body.acceleration.copy() for body in self.bodies]
@@ -187,7 +186,7 @@ class NBodySimulation:
             # ∴ v(t+δt) - v(t) = ([ 2a(t+δt) + 5a(t) - a(t - δt) ]/6)·δt
             # ∴ δv = ([ 2a(t+δt) + 5a(t) - a(t - δt) ]/6)·δt
             # and to update velocity we just have to do v(t)+=δv as done below
-            body.velocity += ((1/3)*body.acceleration*dt + (5/6)*old_accelerations[i]*dt - (1/6)*body.prev_acceleration*dt)
+            body.velocity += ((1/3)*body.acceleration*self.dt + (5/6)*old_accelerations[i]*self.dt - (1/6)*body.prev_acceleration*self.dt)
             # storing the current acceleration into the old accelerations list for the next timestep
             body.prev_acceleration = old_accelerations[i]
     
@@ -201,7 +200,7 @@ class NBodySimulation:
             # and to update velocity we just have to do v(t)+=δv as done below
             # here, a(t)·δt is just (δv/δt)·δt which is δv
             # so v(t)+=δv is the same as v(t)+=a(t)·δt as done below
-            body.velocity += body.acceleration * dt
+            body.velocity += body.acceleration * self.dt
         
         # going through each body's position
         for body in self.bodies:
@@ -211,7 +210,7 @@ class NBodySimulation:
             # ∴ δr = v(t)·δt
             # here, v(t)·δt is just (δr/δt)·δt which is δr
             # so r(t)+=δr is the same as r(t)+=v(t)·δt as done below
-            body.position += body.velocity * dt
+            body.position += body.velocity * self.dt
 
         # recalculate accelerations
         self.calculate_accelerations()
@@ -226,7 +225,7 @@ class NBodySimulation:
             # ∴ δr = v(t)·δt
             # here, v(t)·δt is just (δr/δt)·δt which is δr
             # so r(t)+=δr is the same as r(t)+=v(t)·δt as done below
-            body.position += old_velocities[i] * dt
+            body.position += old_velocities[i] * self.dt
 
         # going through each body's velocity
         for body in self.bodies:
@@ -235,7 +234,7 @@ class NBodySimulation:
             # ∴ δv = a(t)·δt
             # here, a(t)·δt is just (δv/δt)·δt which is δv
             # so v(t)+=δv is the same as v(t)+=a(t)·δt as done below
-            body.velocity += body.acceleration * dt
+            body.velocity += body.acceleration * self.dt
 
         # recalculate accelerations
         self.calculate_accelerations()
@@ -346,6 +345,9 @@ if __name__ == "__main__":
     # - "beeman"
     # - "euler_cromer"
     # - "euler"
+
+    # timestep [yr]
+    dt = 0.001
 
     # loading the class to simulate all the planets (and the sun too)
     simulation = NBodySimulation("parameters_solar.json")

@@ -13,7 +13,7 @@ if __name__ == "__main__":
     ENERGY_OUTPUT_FILE = "energy_output.txt"
 
     # timestep [yr]
-    dt = 0.001
+    dt = 0.0003
 
     # actual orbital periods of the planets in Earth years (for comparison)
     REAL_PERIODS = {
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     meth = input("Choose an integration method from the following :\n1. Beeman\n2. Euler-Cromer\n3. Direct Euler\n\nEnter the number corresponding to your chosen method : ")
 
     # loading the class to simulate all the planets (and the sun too)
-    sim = simulation.NBodySimulation("parameters_solar.json", meth)
+    sim = simulation.NBodySimulation("parameters_solar.json", meth, dt)
 
     # creating empty lists for the position histories of the bodies
     positions_history = {body.name: [] for body in sim.bodies}

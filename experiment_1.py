@@ -19,11 +19,12 @@ if __name__ == "__main__":
         "mars": 1.8808476,
         "jupiter": 11.862615,
     }
-    # loading the class to simulate all the planets (and the sun too)
-    sim = simulation.NBodySimulation("parameters_solar.json")
 
     # picking a dt value for the simulation to compare accuracy against dt choice
     dt = float(input("Enter a value for the time step (dt) in years (e.g., 0.001): "))
+
+    # loading the class to simulate all the planets (and the sun too)
+    sim = simulation.NBodySimulation("parameters_solar.json", dt=dt)
 
     # creating empty lists for the position histories of the bodies
     positions_history = {body.name: [] for body in sim.bodies}
