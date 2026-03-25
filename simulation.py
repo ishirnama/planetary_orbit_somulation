@@ -58,7 +58,7 @@ class Body:
 
 # creating a class for the whole simulation
 class NBodySimulation:
-    def __init__(self, filename, method="beeman"):
+    def __init__(self, filename, method="1"):
         # picking the method of integration (the default is beeman)
         self.method = method
         # creating an attribute for holding the data in the JSON file after opening it
@@ -142,19 +142,19 @@ class NBodySimulation:
     # different types of integration methods
     def step(self):
         # if the user picks beeman method
-        if self.method == "beeman":
+        if self.method == "1":
             # call the step function for beemian integration
             self.step_beeman()
             # beeman's graph is blue
             self.colour = "blue"
         # otherwise, if the user picks euler-cromer method
-        elif self.method == "euler_cromer":
+        elif self.method == "2":
             #call the step function for euler-cromer integration
             self.step_euler_cromer()
             # euler & cromer's graph is red
             self.colour = "red"
         # otherwise, if the user picks direct-euler method
-        elif self.method == "euler":
+        elif self.method == "3":
             # call the step function for direct-euler integration
             self.step_euler()
             # euler's graph is green
