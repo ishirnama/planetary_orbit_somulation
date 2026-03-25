@@ -1,3 +1,5 @@
+# Computer Simulation (Final Project) : Planetary Orbit Simulation
+
 ---
 
 ## Files
@@ -55,8 +57,11 @@ After Entering the timestep, the program simulates the orbital periods of all th
 The actual values of the orbital periods of the planets can be found here : https://solarsystem.nasa.gov/planet-compare/
 After checking the simulated periods against the actual periods, the program computes the **percentage error** (for each planet) and displays it in a tabular format.
 
-run_experiment1.py
-Computes orbital periods of planets and compares them with real values.
+---
+
+experiment2.py
+Upon runninng this file, the program plots a graph of **"Total Energy"** ($\Sigma E(t)$) against "time" ($t$).
+
 
 run_experiment2.py
 Compares energy conservation for different numerical integration methods:
