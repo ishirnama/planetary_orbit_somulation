@@ -8,6 +8,7 @@
 - experiment_1.py
 - experiment_2.py
 - experiment_4.py
+- parameters_solar.json
 
 ### Simulation
 simulation.py contains 2 classes :
