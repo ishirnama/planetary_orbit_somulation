@@ -102,6 +102,6 @@ To run a file :
 
 ## Units used for calculations
 
-- Distance: AU
-- Mass: Earth masses (M⊕)
-- Time: years
+- Distance : $AU$
+- Mass : Earth masses ($M_\oplus$)
+- Time : $yr$
