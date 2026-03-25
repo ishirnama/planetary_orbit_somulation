@@ -67,7 +67,7 @@ The user can pick from 3 options andd enter the number corresponding to their de
 3. Direct Euler
 
 Then, the program plots 2 graphs :
-- "**Total Energy**" ($\sum E(t)$) against "**time**" ($t$)
+- "**Total Energy**" ($E(t)$) against "**time**" ($t$)
 - "**Total Energy RMS**" ($\Delta E_{\text{RMS}}$) against "**time**" ($t$)
 
 These graphs help to visualise energy conservation. The first graph displays $\Sigma E(t)$ vs $t$.
