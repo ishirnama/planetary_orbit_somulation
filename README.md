@@ -46,7 +46,7 @@ Sample code for parsing a JSON file holding planet information. The printing is 
 
 ### experiment_1.py
 Upon running this file, the user is asked to pick a value for $dt$ which is basically the update ammount for time in each timestep.
-Each timestep follows an update rule : $$ t' = t + dt $$
+Each timestep follows an update rule ( $t' = t + dt$ )
 Depending on the choice of timestep, the orbits of the planets could be more or less accurate than the true value of the orbits.
 A timestep too small or too large could potentially accumulate more error during the simulation. So a perfectly right timestep must be picked.
 The default timestep for the simulation in **simulation.py** was $dt = 0.001[\text{yr}]$.
