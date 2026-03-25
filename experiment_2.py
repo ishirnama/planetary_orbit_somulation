@@ -54,16 +54,35 @@ if __name__ == "__main__":
         # locally storing the time every 10 steps
         time_history.append(sim.time)
     
+    names = {
+        "1" : "Beeman",
+        "2" : "Euler-Cromer",
+        "3" : "Direct-Euler"
+    }
+
     # showing the total energy evolution of the system overtime on a graph
     N = len(time_history)
     # plotting ΣE(t) vs t and making sure the units are there
-    fig = plt.figure(figsize=(8, 6))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
     t = np.array(time_history)
     E = np.array(energy_history)
-    plt.plot(t, E*(10**6), color=sim.colour, label=fr"Total Energy ({sim.method.capitalize()}) $\Sigma E(t)$")
-    plt.xlabel(r"t [yr]")
-    plt.ylabel(r"$\Sigma E(t)$ [$1\times10^{-6} M_\oplus{AU}^2{yr}^{-2}$] ")
-    plt.title(f"Total Energy vs Time ({sim.method.capitalize()})")
-    plt.legend()
-    plt.ticklabel_format(style='plain', axis='y')
+    # finding the average total energy of the system
+    E_mean = np.mean(E)
+    # finding the RMS error of the total energy of the system compared to it's average total energy
+    rms = np.sqrt(np.mean((E - E_mean)**2))
+
+    # plotting ΣE(t) vs t
+    ax1.plot(t, E*(10**6), color=sim.colour, label=fr"Total Energy ({names[sim.method]}) $\Sigma E(t)$")
+    ax1.set_xlabel("t [yr]")
+    ax1.set_ylabel(r"$\Sigma E(t)$ [$1\times10^{-6} M_\oplus AU^2 yr^{-2}$]")
+    ax1.set_title(f"Total Energy vs Time ({names[sim.method]})")
+    ax1.legend()
+    ax1.ticklabel_format(style='plain', axis='y')
+    # plotting RMS vs t
+    ax2.axhline(rms*(10**6), linestyle='--', label=r"$\Delta E_{\mathrm{RMS}}$")
+    ax2.set_xlabel("t [yr]")
+    ax2.set_ylabel(r"$\Delta E_{\mathrm{RMS}}$ [$1\times10^{-6} M_\oplus AU^2 yr^{-2}$]")
+    ax2.set_title("RMS Energy Deviation")
+    ax2.legend()
+    plt.tight_layout()
     plt.show()
