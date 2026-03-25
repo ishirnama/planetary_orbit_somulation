@@ -19,9 +19,9 @@ For example, some of the attributes of the Body class include :
 - name (name of the planet)
 - mass (mass of the planet in units of $M_\oplus$ "Earth Mass")
 - colour (colour of the planet used in the simulation)
-- position (position of the planet in the solar system $\vec{r}(t)$ in units of $AU$ "Astronomical Units")
+- position (position of the planet in the solar system $r(t)$ in units of $AU$ "Astronomical Units")
 
-Upon running simulation.py , the program calculates the position vectors $\vec{r}(t)$ for each planet at each timestep.
+Upon running simulation.py , the program calculates the position vectors $r(t)$ for each planet at each timestep.
 Then, an animation pops up showing the planets moving around the sun (according to their positions for each timestep calculated earlier).
 Each timestep is 0.001 of a year and the program calculates the simulation for 25 years (since that's how long it takes for jupiter to complete 2 orbits around the sun).
 
