@@ -1,6 +1,8 @@
-----------------------------------------
+---
+
 ## Files
-----------------------------------------
+
+---
 
 ### Names of files
 
@@ -11,6 +13,8 @@
 - energy_output.txt
 - parameters_solar.json
 - parse_json.py
+
+---
 
 ### Simulation
 simulation.py contains 2 classes :
@@ -33,15 +37,16 @@ Each timestep is 0.001 of a year and the program calculates the simulation for 2
 ### parameters_solar.json
 Contains initial conditions for the solar system bodies.
 
+---
+
 ### parse_json.py
 Sample code for parsing a JSON file holding planet information. The printing is for illustration only and does not need to be included in your own project code. Masses are in units of the Earth mass ($M_{\oplus}$), and orbital radii are in units of the Earth's value (i.e., 1 Astronomical Unit or AU).
 
+---
+
 ### experiment_1.py
 Upon running this file, the user is asked to pick a value for $dt$ which is basically the update ammount for time in each timestep.
-Each timestep follows an update rule :
-\[
-t' = t + dt
-\]
+Each timestep follows an update rule : $$ t' = t + dt $$
 Depending on the choice of timestep, the orbits of the planets could be more or less accurate than the true value of the orbits.
 A timestep too small or too large could potentially accumulate more error during the simulation. So a perfectly right timestep must be picked.
 The default timestep for the simulation in **simulation.py** was $dt = 0.001[\text{yr}]$.
