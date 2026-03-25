@@ -95,8 +95,7 @@ To run a file :
 
 1. Open a terminal
 2. Navigate to your project folder.
-3. Type "python [filename].py" into the terminal and replace [filename] with the actual file's name (e.g. if I want to run simulation.py).
-   >> python simulation.py
+3. Type "python [filename].py" into the terminal and replace [filename] with the actual file's name (e.g. python simulation.py)
 4. Follow the instructions that pop up in the terminal.
 
 ---
