@@ -2,16 +2,35 @@
 ## Files
 ----------------------------------------
 
-simulation.py
-Contains the main simulation code, including:
-- Body class
-- NBodySimulation class
-- Integration methods (Beeman, Euler-Cromer, Euler)
+### Names of files
 
-parameters_solar.json
+- simulation.py
+- experiment_1.py
+- experiment_2.py
+- experiment_4.py
+
+### Simulation
+simulation.py contains 2 classes :
+- Body
+- NBodySimulation
+
+The Body class is a template for each planet. It contains **all the details** about the planets and the information given about them in the JSON file **(parameters_solar.json)**.
+For example, some of the attributes of the Body class include :
+- name (name of the planet)
+- mass (mass of the planet in units of $M_\oplus$ "Earth Mass")
+- colour (colour of the planet used in the simulation)
+- position (position of the planet in the solar system $\vec{r}(t)$ in units of $AU$ "Astronomical Units")
+
+Upon running simulation.py , the program calculates the position vectors $\vec{r}(t)$ for each planet at each timestep.
+Then, an animation pops up showing the planets moving around the sun (according to their positions for each timestep calculated earlier).
+Each timestep is 0.001 of a year and the program calculates the simulation for 25 years (since that's how long it takes for jupiter to complete 2 orbits around the sun).
+
+---
+
+### parameters_solar.json
 Contains initial conditions for the solar system bodies.
 
-run_default.py
+s.py
 Runs the default simulation and produces an animation of planetary orbits.
 
 run_experiment1.py
