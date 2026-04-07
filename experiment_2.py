@@ -13,7 +13,7 @@ if __name__ == "__main__":
     ENERGY_OUTPUT_FILE = "energy_output.txt"
 
     # timestep [yr]
-    dt = 0.0003
+    dt = 0.001
 
     # actual orbital periods of the planets in Earth years (for comparison)
     REAL_PERIODS = {
@@ -72,16 +72,16 @@ if __name__ == "__main__":
     rms = np.sqrt(np.mean((E - E_mean)**2))
 
     # plotting ΣE(t) vs t
-    ax1.plot(t, E*(10**6), color=sim.colour, label=fr"Total Energy ({names[sim.method]}) $\Sigma E(t)$")
+    E_out = E*(10**6)
+    ax1.plot(t, E_out, color=sim.colour, label=fr"Total Energy ({names[sim.method]}) $\Sigma E(t)$")
     ax1.set_xlabel("t [yr]")
     ax1.set_ylabel(r"$\Sigma E(t)$ [$1\times10^{-6} M_\oplus AU^2 yr^{-2}$]")
     ax1.set_title(f"Total Energy vs Time ({names[sim.method]})")
     ax1.legend()
-    ax1.ticklabel_format(style='plain', axis='y')
     # plotting RMS vs t
-    ax2.axhline(rms*(10**6), linestyle='--', label=r"$\Delta E_{\mathrm{RMS}}$")
+    ax2.axhline(rms*(10**6), linestyle='--', label=r"$\delta E_{\mathrm{RMS}}=\sqrt{\frac{1}{N}\sum_{i=1}^{N}(E_i-\bar{E})^2}$")
     ax2.set_xlabel("t [yr]")
-    ax2.set_ylabel(r"$\Delta E_{\mathrm{RMS}}$ [$1\times10^{-6} M_\oplus AU^2 yr^{-2}$]")
+    ax2.set_ylabel(r"$\delta E_{\mathrm{RMS}}$ [$1\times10^{-6} M_\oplus AU^2 yr^{-2}$]")
     ax2.set_title("RMS Energy Deviation")
     ax2.legend()
     plt.tight_layout()

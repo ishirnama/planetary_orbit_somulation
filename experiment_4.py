@@ -28,7 +28,7 @@ if __name__ == "__main__":
     # choosing the total time of the simulation (e.g. 25 years)
     # this has to be done because planet alignment is rare and it might not be detected if the simulation runtime is too short
     TOTAL_TIME = float(input("Enter total simulation time (yr) e.g. 25 yrs : "))
-
+    print("")
     # loading the class to simulate all the planets (and the sun too)
     sim = simulation.NBodySimulation("parameters_solar.json")
 
