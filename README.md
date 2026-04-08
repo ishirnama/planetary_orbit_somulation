@@ -1,5 +1,5 @@
-# Computer Simulation (Final Project) : Planetary Orbit Simulation
-
+# Computer Simulation Final Project : PANS (Planetary Orbit Numerical Simulation)
+/
 ---
 
 ## Files
