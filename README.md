@@ -1,4 +1,4 @@
-# Computer Simulation Final Project : PANS (Planetary Orbit Numerical Simulation)
+# Computer Simulation Final Project : PONS (Planetary Orbit Numerical Simulation)
 /
 ---
 
